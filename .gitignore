@@ -176,3 +176,5 @@ cython_debug/
 #Ceneo Web scraper
 config.py
 app/data
+
+app/static

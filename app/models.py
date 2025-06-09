@@ -1,4 +1,3 @@
-import os
 import json
 import requests
 import numpy as np
@@ -7,7 +6,7 @@ import matplotlib
 from bs4 import BeautifulSoup
 from matplotlib import pyplot as plt
 from config import headers
-from app.utils import extract_data, translate_data, create_if_not_exist
+from app.utils import extract_data, translate_data, create_if_not_exists
 
 matplotlib.use('agg')
 
@@ -74,40 +73,41 @@ class Product:
         self.stats["stars"] = opinions.stars.value_counts().reindex(list(np.arange(0.5,5.5,0.5)), fill_value=0).to_dict()
     
     def generate_charts(self):
-        create_if_not_exist("./app/static/pie_charts")
-        create_if_not_exist("./app/static/bar_charts")
-        recommendations =pd.Series(self.stats['recommendations'], index=self.stats['recommendations'].keys())
+        create_if_not_exists("./app/static/pie_charts")
+        create_if_not_exists("./app/static/bar_charts")
+        recommendations = pd.Series(self.stats['recommendations'], index=self.stats['recommendations'].keys())
         recommendations.plot.pie(
             label = "",
             labels = ["Recommend", "Not recommend", "No opinion"],
-            colors = ['turquoise', 'blue', 'magenta'],
+            colors = ['turquoise', 'magenta', 'blue'],
             autopct = lambda r: f"{r:.1f}%" if r>0 else ""
-        )
-        plt.title(f"Recommendations for product {self.product_id}\nTotal number of opinions: {self.stats['opinion_count']}")
+            )
+        plt.title(f"Recommendations for product: {self.product_id}\nTotal number of opinions: {self.stats['opinions_count']}")
         plt.savefig(f"./app/static/pie_charts/{self.product_id}.png")
         plt.close()
-        plt.figure (figsize=(7,6))
-        stars = pd.Series(self.stars['stars'])
+
+        plt.figure(figsize=(7,6))
+        stars = pd.Series(self.stats['stars'])
         ax = stars.plot.bar(
-            color =["violet" if s>3.5 else "forestgreen" if s<3 else "steelblue" for s in stars.index]
+            color = ["turquoise" if s>3.5 else "magenta" if s<3 else "blue" for s in stars.index]
         )
         plt.bar_label(container=ax.containers[0])
         plt.xlabel("Number of stars")
         plt.ylabel("Number of opinions")
-        plt.title(f"Number of opinions about product {self.product_id}\nwith particular number of stars\nTotal number of opinions {self.opinions_count}")
+        plt.title(f"Number of opinions about product {self.product_id}\nwith particular number of stars\nTotal number of opinions: {self.stats['opinions_count']}")
         plt.xticks(rotation=0)
-        plt.savefig(f"./bar_charts/{self.product_id}.png")
+        plt.savefig(f"./app/static/bar_charts/{self.product_id}.png")
         plt.close()
 
     def save_opinions(self):
-        create_if_not_exist("./app/data")
-        create_if_not_exist("./app/data/opinions")
+        create_if_not_exists("./app/data")
+        create_if_not_exists("./app/data/opinions")
         with open(f"./app/data/opinions/{self.product_id}.json", "w", encoding="UTF-8") as jf:
             json.dump(self.opinions_to_dict(), jf, indent=4, ensure_ascii=False)
 
     def save_info(self):
-        create_if_not_exist("./app/data")
-        create_if_not_exist("./app/data/products")
+        create_if_not_exists("./app/data")
+        create_if_not_exists("./app/data/products")
         with open(f"./app/data/products/{self.product_id}.json", "w", encoding="UTF-8") as jf:
             json.dump(self.info_to_dict(), jf, indent=4, ensure_ascii=False)
 
@@ -156,6 +156,7 @@ class Opinion:
     def extract(self, opinion):
         for key, values in self.selectors.items():
             setattr(self,key,extract_data(opinion, *values))
+        return self
 
     def translate(self):
         self.content_en = translate_data(self.content_pl)
