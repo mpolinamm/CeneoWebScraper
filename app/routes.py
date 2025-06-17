@@ -1,6 +1,7 @@
 import io
 import os
 import json
+import pandas as pd
 from flask import render_template, redirect, request, url_for, send_file
 from app import app
 from app.forms import ProductIdForm
@@ -35,7 +36,25 @@ def extract():
 
 @app.route("/product/<product_id>")
 def product(product_id):
-    return render_template("product.html", product_id=product_id)
+    info_path = f"./app/data/products/{product_id}.json"
+    opinions_path = f"./app/data/opinions/{product_id}.json"
+
+    if not os.path.exists(info_path) or not os.path.exists(opinions_path):
+        return "Product data not found", 404
+
+    with open(info_path, encoding="utf-8") as f:
+        product_info = json.load(f)
+
+    with open(opinions_path, encoding="utf-8") as f:
+        opinions = json.load(f)
+
+    return render_template(
+        "product.html",
+        product_id=product_id,
+        product_name=product_info.get("product_name", "Unknown"),
+        stats=product_info.get("stats", {}),
+        opinions=opinions
+    )
 
 @app.route("/charts/<product_id>")
 def charts(product_id):
@@ -59,7 +78,7 @@ def products():
                     "opinions_count": stats.get("opinions_count", 0),
                     "pros_count": stats.get("pros_count", 0),
                     "cons_count": stats.get("cons_count", 0),
-                    "average_score": round(stats.get("average_rate", 0.0), 2),
+                    "average_score": round(stats.get("average_stars", 0.0), 2),
                 })
     return render_template("products.html", products=products_data)
 

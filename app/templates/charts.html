@@ -1,4 +1,22 @@
 {% extends 'base.html' %}
-{% block title %} {% endblock%}
 {% block content %}
+<div class="container mt-4">
+    <h2>Charts for {{ product_id }}</h2>
+
+    <div class="mb-3">
+        <a href="{{ url_for('product', product_id=product_id) }}" class="btn btn-secondary">← Back to Product</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+          <h4>Recommendation Distribution</h4>
+          <img src="{{ url_for('static', filename='pie_charts/' + product_id + '.png') }}" class="img-fluid" alt="Pie chart">
+        </div>
+        <div class="col-md-6">
+          <h4>Star Ratings Distribution</h4>
+          <img src="{{ url_for('static', filename='bar_charts/' + product_id + '.png') }}" class="img-fluid" alt="Bar chart">
+        </div>
+    </div>
+</div>
+
 {% endblock%}
